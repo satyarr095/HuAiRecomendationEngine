@@ -2,12 +2,17 @@ import { useState, useRef, type ChangeEvent, type KeyboardEvent } from "react";
 import { CheckCircle2, UploadCloud, AlertCircle, Sparkles, Database, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import './LandingPage.css';
+import { aiService, type AIResponse } from '../../services/aiService';
+import ResultsDisplay from './ResultsDisplay';
 
 export default function LandingPage() {
     const [jsonData, setJsonData] = useState<Record<string, unknown> | null>(null);
     const [error, setError] = useState<string>("");
     const [fileName, setFileName] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isProcessing, setIsProcessing] = useState<boolean>(false);
+    const [results, setResults] = useState<AIResponse | null>(null);
+    const [showResults, setShowResults] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -60,10 +65,21 @@ export default function LandingPage() {
         }
     };
 
-    const handleContinue = () => {
+    const handleContinue = async () => {
         if (jsonData) {
-            // Handle continue logic here
-            console.log("Continue with data:", jsonData);
+            setIsProcessing(true);
+            setError("");
+
+            try {
+                const aiResults = await aiService.getRecommendations(jsonData);
+                setResults(aiResults);
+                setShowResults(true);
+            } catch (err) {
+                setError("Failed to process your data. Please try again.");
+                console.error("AI processing error:", err);
+            } finally {
+                setIsProcessing(false);
+            }
         }
     };
 
@@ -77,6 +93,9 @@ export default function LandingPage() {
         setJsonData(null);
         setError("");
         setFileName("");
+        setResults(null);
+        setShowResults(false);
+        setIsProcessing(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -99,6 +118,11 @@ export default function LandingPage() {
             description: "Get actionable recommendations instantly"
         }
     ];
+
+    // Show results if analysis is complete
+    if (showResults && results) {
+        return <ResultsDisplay results={results} onBackToUpload={resetUpload} />;
+    }
 
     return (
         <div className="landing-container">
@@ -129,7 +153,7 @@ export default function LandingPage() {
                         </h1>
 
                         <p className="hero-subtitle">
-                            Upload your JSON data and let our advanced AI recommendation engine 
+                            Upload your JSON data and let our advanced AI recommendation engine
                             discover patterns, trends, and opportunities you never knew existed.
                         </p>
                     </motion.div>
@@ -166,7 +190,7 @@ export default function LandingPage() {
                                     disabled={isLoading}
                                     aria-describedby={error ? "error-message" : undefined}
                                 />
-                                
+
                                 <div className="upload-content">
                                     <div className="upload-visual">
                                         <div className="upload-circle">
@@ -223,14 +247,19 @@ export default function LandingPage() {
 
                                 <button
                                     onClick={handleContinue}
-                                    disabled={!jsonData || isLoading}
-                                    className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
+                                    disabled={!jsonData || isLoading || isProcessing}
+                                    className={`btn btn-primary ${(isLoading || isProcessing) ? 'loading' : ''}`}
                                     type="button"
                                 >
                                     {isLoading ? (
                                         <>
                                             <div className="spinner"></div>
-                                            Processing...
+                                            Reading File...
+                                        </>
+                                    ) : isProcessing ? (
+                                        <>
+                                            <div className="spinner"></div>
+                                            Analyzing Data...
                                         </>
                                     ) : (
                                         <>
