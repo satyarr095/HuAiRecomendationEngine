@@ -11,6 +11,7 @@ export interface RecommendationItem {
   skills: string[];
   rating: number;
   thumbnail?: string;
+  url?: string; // Real course/content URL from internet search
 }
 
 export interface SkillGap {

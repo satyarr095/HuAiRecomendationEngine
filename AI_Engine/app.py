@@ -4,6 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import time
+import asyncio
+
+# Import our AI recommendation engines
+from ai_recommendation_engine import process_any_json
+from performance_optimized_engine import process_high_volume_requests
+
+# Choose engine based on load (you can switch this for production)
+USE_HIGH_VOLUME_ENGINE = True  # Set to True for production/high-volume usage
 
 app = FastAPI(title="AI Recommendation Engine",
               description="AI-powered learning recommendations API")
@@ -249,28 +257,29 @@ async def root():
     return {"message": "AI Recommendation Engine API", "status": "running"}
 
 
-@app.post("/api/recommendations", response_model=AIResponse)
+@app.post("/api/recommendations")
 async def get_recommendations(request: AnalysisRequest):
     """
-    Analyze uploaded JSON data and return personalized learning recommendations
+    Analyze uploaded JSON data and return personalized learning recommendations using AI
+    High-volume optimized version with caching and minimal external dependencies
     """
     try:
-        # Simulate processing time (like the frontend did)
         start_time = time.time()
-        time.sleep(2.5)  # Simulate AI processing
+        
+        # Choose engine based on configuration
+        if USE_HIGH_VOLUME_ENGINE:
+            ai_response = await process_high_volume_requests(request.jsonData)
+        else:
+            ai_response = await process_any_json(request.jsonData)
+        
         processing_time = time.time() - start_time
-
-        # In a real implementation, this would process request.jsonData
-        # For now, return static dummy data
-        response = AIResponse(
-            userId=request.userId or "user-123",
-            recommendations=generate_dummy_recommendations(),
-            skillGaps=generate_dummy_skill_gaps(),
-            learningPaths=generate_dummy_learning_paths(),
-            processingTime=round(processing_time, 2)
-        )
-
-        return response
+        ai_response["processingTime"] = round(processing_time, 2)
+        
+        # Add user ID if provided
+        if request.userId:
+            ai_response["userId"] = request.userId
+        
+        return ai_response
 
     except Exception as e:
         raise HTTPException(

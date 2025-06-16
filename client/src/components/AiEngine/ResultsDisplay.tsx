@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  BookOpen, 
-  Play, 
-  FileText, 
-  HelpCircle, 
-  Star, 
-  Clock, 
-  TrendingUp, 
+import {
+  BookOpen,
+  Play,
+  FileText,
+  HelpCircle,
+  Star,
+  Clock,
+  TrendingUp,
   Target,
   ArrowRight,
   CheckCircle
@@ -49,7 +49,22 @@ const getPriorityColor = (priority: string) => {
 
 const RecommendationCard: React.FC<{ item: RecommendationItem; index: number }> = ({ item, index }) => {
   const TypeIcon = getTypeIcon(item.type);
-  
+
+  const handleStartLearning = () => {
+    // Get the URL from the item (backend provides real URLs)
+    const courseUrl = item.url || item.thumbnail;
+
+    if (courseUrl && courseUrl !== '' && !courseUrl.includes('placeholder')) {
+      // Open the real course URL in a new tab
+      window.open(courseUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // Fallback: try to search for the course title
+      const searchQuery = encodeURIComponent(`${item.title} online course`);
+      const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+      window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -67,16 +82,16 @@ const RecommendationCard: React.FC<{ item: RecommendationItem; index: number }> 
           <span>{item.rating}</span>
         </div>
       </div>
-      
+
       <div className="card-content">
         <h3 className="card-title">{item.title}</h3>
         <p className="card-description">{item.description}</p>
-        
+
         <div className="reason-box">
           <TrendingUp className="reason-icon" />
           <span className="reason-text">{item.reason}</span>
         </div>
-        
+
         <div className="card-meta">
           <div className="meta-item">
             <Clock className="meta-icon" />
@@ -86,16 +101,20 @@ const RecommendationCard: React.FC<{ item: RecommendationItem; index: number }> 
             {item.difficulty}
           </div>
         </div>
-        
+
         <div className="skills-tags">
           {item.skills.map((skill, idx) => (
             <span key={idx} className="skill-tag">{skill}</span>
           ))}
         </div>
       </div>
-      
+
       <div className="card-footer">
-        <button className="btn btn-primary btn-small">
+        <button
+          className="btn btn-primary btn-small"
+          onClick={handleStartLearning}
+          title={`Open ${item.title} in new tab`}
+        >
           Start Learning
           <ArrowRight className="btn-icon" />
         </button>
@@ -106,7 +125,7 @@ const RecommendationCard: React.FC<{ item: RecommendationItem; index: number }> 
 
 const SkillGapCard: React.FC<{ gap: SkillGap; index: number }> = ({ gap, index }) => {
   const progressPercentage = (gap.currentLevel / gap.targetLevel) * 100;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -126,17 +145,17 @@ const SkillGapCard: React.FC<{ gap: SkillGap; index: number }> = ({ gap, index }
           <span className="target-level">Target: {gap.targetLevel}/10</span>
         </div>
       </div>
-      
+
       <div className="progress-container">
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+          <div
+            className="progress-fill"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
         <span className="progress-text">{Math.round(progressPercentage)}% complete</span>
       </div>
-      
+
       {gap.recommendedContent.length > 0 && (
         <div className="recommended-content">
           <h4 className="content-title">Recommended to bridge this gap:</h4>
@@ -156,6 +175,32 @@ const SkillGapCard: React.FC<{ gap: SkillGap; index: number }> = ({ gap, index }
 };
 
 const LearningPathCard: React.FC<{ path: LearningPath; index: number }> = ({ path, index }) => {
+  const handleStartLearningPath = () => {
+    // Start with the first step that has a URL
+    const firstStepWithUrl = path.steps.find(step => step.url && step.url !== '' && !step.url.includes('placeholder'));
+
+    if (firstStepWithUrl) {
+      window.open(firstStepWithUrl.url, '_blank', 'noopener,noreferrer');
+    } else {
+      // Fallback: search for the learning path title
+      const searchQuery = encodeURIComponent(`${path.title} learning path online course`);
+      const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+      window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleStepClick = (step: RecommendationItem) => {
+    const courseUrl = step.url || step.thumbnail;
+
+    if (courseUrl && courseUrl !== '' && !courseUrl.includes('placeholder')) {
+      window.open(courseUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      const searchQuery = encodeURIComponent(`${step.title} online course`);
+      const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+      window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -172,9 +217,9 @@ const LearningPathCard: React.FC<{ path: LearningPath; index: number }> = ({ pat
           </span>
         </div>
       </div>
-      
+
       <p className="path-description">{path.description}</p>
-      
+
       <div className="skills-gained">
         <h4 className="skills-title">Skills you'll gain:</h4>
         <div className="skills-list">
@@ -183,11 +228,17 @@ const LearningPathCard: React.FC<{ path: LearningPath; index: number }> = ({ pat
           ))}
         </div>
       </div>
-      
+
       <div className="learning-steps">
         <h4 className="steps-title">Learning Steps:</h4>
         {path.steps.map((step, idx) => (
-          <div key={idx} className="learning-step">
+          <div
+            key={idx}
+            className="learning-step clickable-step"
+            onClick={() => handleStepClick(step)}
+            title={`Click to open: ${step.title}`}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="step-number">{idx + 1}</div>
             <div className="step-content">
               <h5 className="step-title">{step.title}</h5>
@@ -202,13 +253,17 @@ const LearningPathCard: React.FC<{ path: LearningPath; index: number }> = ({ pat
           </div>
         ))}
       </div>
-      
-      <div className="path-footer">
-        <button className="btn btn-primary">
+
+      {/* <div className="path-footer">
+        <button 
+          className="btn btn-primary"
+          onClick={handleStartLearningPath}
+          title="Start the first step of this learning path"
+        >
           Start Learning Path
           <ArrowRight className="btn-icon" />
         </button>
-      </div>
+      </div> */}
     </motion.div>
   );
 };
@@ -252,7 +307,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onBackToUpload
             Personalized learning content based on your profile and goals
           </p>
         </motion.div>
-        
+
         <div className="recommendations-grid">
           {results.recommendations.map((item, index) => (
             <RecommendationCard key={item.id} item={item} index={index} />
@@ -276,7 +331,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onBackToUpload
             Identify areas for improvement and bridge your skill gaps
           </p>
         </motion.div>
-        
+
         <div className="skill-gaps-grid">
           {results.skillGaps.map((gap, index) => (
             <SkillGapCard key={gap.skill} gap={gap} index={index} />
@@ -300,7 +355,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onBackToUpload
             Structured learning journeys to achieve your goals
           </p>
         </motion.div>
-        
+
         <div className="learning-paths-grid">
           {results.learningPaths.map((path, index) => (
             <LearningPathCard key={path.id} path={path} index={index} />

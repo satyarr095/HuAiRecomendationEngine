@@ -1434,6 +1434,18 @@ body {
     border-left: 3px solid var(--color-accent);
 }
 
+.learning-step.clickable-step {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.learning-step.clickable-step:hover {
+    border-left-color: var(--color-primary);
+    background: var(--color-surface);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
 .step-number {
     width: 2rem;
     height: 2rem;
