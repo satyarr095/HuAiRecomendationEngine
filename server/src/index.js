@@ -1,7 +1,6 @@
 import express from 'express';
 import { configDotenv } from 'dotenv';
 import { connectDB } from '../config/db.js';
-
 configDotenv();
 const app = express();
 
