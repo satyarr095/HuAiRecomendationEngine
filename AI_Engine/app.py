@@ -19,8 +19,14 @@ app = FastAPI(title="AI Recommendation Engine",
 # Add CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000",
-                   "http://127.0.0.1:5173"],  # React dev server ports
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",  # React dev server
+        "http://localhost",       # Docker frontend
+        "http://127.0.0.1:5173",  # Local dev
+        "http://127.0.0.1",       # Local access
+        "http://0.0.0.0",         # Docker internal
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
