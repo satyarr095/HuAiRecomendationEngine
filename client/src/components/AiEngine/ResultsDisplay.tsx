@@ -175,20 +175,6 @@ const SkillGapCard: React.FC<{ gap: SkillGap; index: number }> = ({ gap, index }
 };
 
 const LearningPathCard: React.FC<{ path: LearningPath; index: number }> = ({ path, index }) => {
-  const handleStartLearningPath = () => {
-    // Start with the first step that has a URL
-    const firstStepWithUrl = path.steps.find(step => step.url && step.url !== '' && !step.url.includes('placeholder'));
-
-    if (firstStepWithUrl) {
-      window.open(firstStepWithUrl.url, '_blank', 'noopener,noreferrer');
-    } else {
-      // Fallback: search for the learning path title
-      const searchQuery = encodeURIComponent(`${path.title} learning path online course`);
-      const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-      window.open(searchUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
-
   const handleStepClick = (step: RecommendationItem) => {
     const courseUrl = step.url || step.thumbnail;
 
@@ -254,16 +240,7 @@ const LearningPathCard: React.FC<{ path: LearningPath; index: number }> = ({ pat
         ))}
       </div>
 
-      {/* <div className="path-footer">
-        <button 
-          className="btn btn-primary"
-          onClick={handleStartLearningPath}
-          title="Start the first step of this learning path"
-        >
-          Start Learning Path
-          <ArrowRight className="btn-icon" />
-        </button>
-      </div> */}
+
     </motion.div>
   );
 };

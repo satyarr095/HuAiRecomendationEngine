@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8000';
+// Live Lambda API endpoint
+const API_BASE_URL = 'https://y8wxjhqcfd.execute-api.us-east-1.amazonaws.com/prod';
 
 export interface RecommendationItem {
   id: string;
@@ -39,14 +40,19 @@ export interface AIResponse {
   processingTime: number;
 }
 
-// API request helper with error handling
+// API request helper with error handling and security
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Cache-Control': 'no-cache',
         ...options.headers,
       },
+      mode: 'cors',
+      credentials: 'omit', // Don't send credentials for security
       ...options,
     });
 
