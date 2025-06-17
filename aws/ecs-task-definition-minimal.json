@@ -1,0 +1,35 @@
+{
+  "family": "ai-minimal-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::890742594683:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "ai-backend",
+      "image": "890742594683.dkr.ecr.us-east-1.amazonaws.com/ai-backend:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/ai-recommendation-engine",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "minimal-backend"
+        }
+      },
+      "environment": [
+        {
+          "name": "PYTHONUNBUFFERED",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+} 
